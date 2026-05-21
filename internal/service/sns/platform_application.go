@@ -226,18 +226,20 @@ func resourcePlatformApplicationUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	// Make API call to update attributes
-	input := &sns.SetPlatformApplicationAttributesInput{
-		Attributes:             attributes,
-		PlatformApplicationArn: aws.String(d.Id()),
-	}
+	if len(attributes) > 0 {
+		// Make API call to update attributes
+		input := &sns.SetPlatformApplicationAttributesInput{
+			Attributes:             attributes,
+			PlatformApplicationArn: aws.String(d.Id()),
+		}
 
-	_, err = tfresource.RetryWhenIsAErrorMessageContains[any, *types.InvalidParameterException](ctx, propagationTimeout, func(ctx context.Context) (any, error) {
-		return conn.SetPlatformApplicationAttributes(ctx, input)
-	}, "is not a valid role to allow SNS to write to Cloudwatch Logs")
+		_, err = tfresource.RetryWhenIsAErrorMessageContains[any, *types.InvalidParameterException](ctx, propagationTimeout, func(ctx context.Context) (any, error) {
+			return conn.SetPlatformApplicationAttributes(ctx, input)
+		}, "is not a valid role to allow SNS to write to Cloudwatch Logs")
 
-	if err != nil {
-		return sdkdiag.AppendErrorf(diags, "updating SNS Platform Application (%s): %s", d.Id(), err)
+		if err != nil {
+			return sdkdiag.AppendErrorf(diags, "updating SNS Platform Application (%s): %s", d.Id(), err)
+		}
 	}
 
 	return append(diags, resourcePlatformApplicationRead(ctx, d, meta)...)
